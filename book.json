@@ -37,6 +37,12 @@
       "title": "工业训练工具链",
       "path": "chapters/06-toolchains.md",
       "slug": "06-toolchains"
+    },
+    {
+      "id": "07-nemo-ecosystem",
+      "title": "NeMo 生命周期工具链",
+      "path": "chapters/07-nemo-ecosystem.md",
+      "slug": "07-nemo-ecosystem"
     }
   ]
 }
