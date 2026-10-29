@@ -1,0 +1,1 @@
+{"name":"learn-model-train-site","private":true,"version":"1.0.0","description":"Static book website build","engines":{"node":">=20"},"dependencies":{"marked":"17.0.5"}}

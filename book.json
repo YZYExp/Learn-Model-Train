@@ -73,6 +73,24 @@
       "title": "从一轮训练理解模型",
       "path": "chapters/12-first-training.md",
       "slug": "12-first-training"
+    },
+    {
+      "id": "13-pretraining",
+      "title": "预训练与继续预训练",
+      "path": "chapters/13-pretraining.md",
+      "slug": "13-pretraining"
+    },
+    {
+      "id": "14-deployment",
+      "title": "压缩与部署",
+      "path": "chapters/14-deployment.md",
+      "slug": "14-deployment"
+    },
+    {
+      "id": "15-lab",
+      "title": "单卡微调实验",
+      "path": "chapters/15-lab.md",
+      "slug": "15-lab"
     }
   ]
 }
