@@ -7,3 +7,7 @@
 检查章节清单、相对链接与 SVG：`python scripts/check_book.py`。运行训练循环教学示例：`python scripts/tiny_bigram.py`。代码示例中除明确记录已运行的案例外，均是待结合环境验证的示意；远程引用可用性未由上述检查脚本验证。
 
 本地构建阅读站：`npm ci`，然后运行 `node scripts/build_site.cjs --base-path /Learn-Model-Train/`；结果位于 `build/site/`。GitHub Actions 从 `book.json` 构建章节并发布 Pages。
+
+## 教学主线
+
+当前目录已改为项目设计、计算与训练方法、工具链完整实现、系统与专题、速查五部分。先读 [顶层工程设计](chapters/16-engineering-design.md) 与 [底层计算](chapters/17-computation-depth.md)，再进入 [HF 工作流](chapters/18-hf-workflow.md)、[NeMo/Megatron](chapters/19-nemo-megatron-workflow.md) 和 [verl](chapters/20-verl-workflow.md)。详细阅读说明见 [阅读路线](appendices/reading-routes.md)。章节中的业务数字为标明条件的算例，GPU 配方仍需在目标环境验证。

@@ -6,91 +6,141 @@
       "id": "01-overview",
       "title": "训练全景",
       "path": "chapters/01-overview.md",
-      "slug": "01-overview"
+      "slug": "01-overview",
+      "part": "一、项目设计"
+    },
+    {
+      "id": "16-engineering-design",
+      "title": "顶层工程：从需求到发布",
+      "path": "chapters/16-engineering-design.md",
+      "slug": "16-engineering-design",
+      "part": "一、项目设计"
     },
     {
       "id": "02-data",
       "title": "数据工程",
       "path": "chapters/02-data.md",
-      "slug": "02-data"
-    },
-    {
-      "id": "03-methods",
-      "title": "训练方法",
-      "path": "chapters/03-methods.md",
-      "slug": "03-methods"
-    },
-    {
-      "id": "04-stack",
-      "title": "训练工程栈",
-      "path": "chapters/04-stack.md",
-      "slug": "04-stack"
-    },
-    {
-      "id": "05-distillation",
-      "title": "蒸馏",
-      "path": "chapters/05-distillation.md",
-      "slug": "05-distillation"
-    },
-    {
-      "id": "06-toolchains",
-      "title": "工业训练工具链",
-      "path": "chapters/06-toolchains.md",
-      "slug": "06-toolchains"
-    },
-    {
-      "id": "07-nemo-ecosystem",
-      "title": "NeMo 生命周期工具链",
-      "path": "chapters/07-nemo-ecosystem.md",
-      "slug": "07-nemo-ecosystem"
-    },
-    {
-      "id": "08-methods-deep",
-      "title": "训练方法详解",
-      "path": "chapters/08-methods-deep.md",
-      "slug": "08-methods-deep"
-    },
-    {
-      "id": "09-systems",
-      "title": "训练系统与分布式",
-      "path": "chapters/09-systems.md",
-      "slug": "09-systems"
-    },
-    {
-      "id": "10-practice-evaluation",
-      "title": "数据实践与评估",
-      "path": "chapters/10-practice-evaluation.md",
-      "slug": "10-practice-evaluation"
-    },
-    {
-      "id": "11-special-topics",
-      "title": "长上下文、MoE 与多模态",
-      "path": "chapters/11-special-topics.md",
-      "slug": "11-special-topics"
+      "slug": "02-data",
+      "part": "一、项目设计"
     },
     {
       "id": "12-first-training",
       "title": "从一轮训练理解模型",
       "path": "chapters/12-first-training.md",
-      "slug": "12-first-training"
+      "slug": "12-first-training",
+      "part": "二、计算与训练方法"
+    },
+    {
+      "id": "17-computation-depth",
+      "title": "底层计算：从 token 到参数更新",
+      "path": "chapters/17-computation-depth.md",
+      "slug": "17-computation-depth",
+      "part": "二、计算与训练方法"
+    },
+    {
+      "id": "08-methods-deep",
+      "title": "训练方法详解",
+      "path": "chapters/08-methods-deep.md",
+      "slug": "08-methods-deep",
+      "part": "二、计算与训练方法"
+    },
+    {
+      "id": "05-distillation",
+      "title": "蒸馏",
+      "path": "chapters/05-distillation.md",
+      "slug": "05-distillation",
+      "part": "二、计算与训练方法"
     },
     {
       "id": "13-pretraining",
       "title": "预训练与继续预训练",
       "path": "chapters/13-pretraining.md",
-      "slug": "13-pretraining"
+      "slug": "13-pretraining",
+      "part": "二、计算与训练方法"
     },
     {
-      "id": "14-deployment",
-      "title": "压缩与部署",
-      "path": "chapters/14-deployment.md",
-      "slug": "14-deployment"
+      "id": "18-hf-workflow",
+      "title": "Hugging Face：完整后训练工作流",
+      "path": "chapters/18-hf-workflow.md",
+      "slug": "18-hf-workflow",
+      "part": "三、工具链的完整实现"
     },
     {
       "id": "15-lab",
       "title": "单卡微调实验",
       "path": "chapters/15-lab.md",
-      "slug": "15-lab"
+      "slug": "15-lab",
+      "part": "三、工具链的完整实现"
+    },
+    {
+      "id": "19-nemo-megatron-workflow",
+      "title": "NeMo/Megatron：集群训练工作流",
+      "path": "chapters/19-nemo-megatron-workflow.md",
+      "slug": "19-nemo-megatron-workflow",
+      "part": "三、工具链的完整实现"
+    },
+    {
+      "id": "20-verl-workflow",
+      "title": "verl：在线强化学习工作流",
+      "path": "chapters/20-verl-workflow.md",
+      "slug": "20-verl-workflow",
+      "part": "三、工具链的完整实现"
+    },
+    {
+      "id": "09-systems",
+      "title": "训练系统与分布式",
+      "path": "chapters/09-systems.md",
+      "slug": "09-systems",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "10-practice-evaluation",
+      "title": "数据实践与评估",
+      "path": "chapters/10-practice-evaluation.md",
+      "slug": "10-practice-evaluation",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "11-special-topics",
+      "title": "长上下文、MoE 与多模态",
+      "path": "chapters/11-special-topics.md",
+      "slug": "11-special-topics",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "14-deployment",
+      "title": "压缩与部署",
+      "path": "chapters/14-deployment.md",
+      "slug": "14-deployment",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "03-methods",
+      "title": "训练方法",
+      "path": "chapters/03-methods.md",
+      "slug": "03-methods",
+      "part": "五、工具与方法速查"
+    },
+    {
+      "id": "04-stack",
+      "title": "训练工程栈",
+      "path": "chapters/04-stack.md",
+      "slug": "04-stack",
+      "part": "五、工具与方法速查"
+    },
+    {
+      "id": "06-toolchains",
+      "title": "工业训练工具链",
+      "path": "chapters/06-toolchains.md",
+      "slug": "06-toolchains",
+      "part": "五、工具与方法速查"
+    },
+    {
+      "id": "07-nemo-ecosystem",
+      "title": "NeMo 生命周期工具链",
+      "path": "chapters/07-nemo-ecosystem.md",
+      "slug": "07-nemo-ecosystem",
+      "part": "五、工具与方法速查"
     }
   ]
 }
