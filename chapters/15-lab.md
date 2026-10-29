@@ -126,3 +126,187 @@ python train_lora.py 2>&1 | tee train.log
 | 恢复后 loss 跳变 | 是否只恢复权重，优化器与调度器是否恢复 | 做中断恢复演练并固定环境及数据位置 |
 
 实验代码和工具 API 会随版本变动。运行失败时先记录报错与环境，再查固定版本文档；不要根据一份未验证的配置声称获得了性能提升。
+
+## 7. 把实验从“能跑”变成“可判断”
+
+前面的四条数据和二十步训练，只适合做冒烟测试：它回答“依赖、数据格式、梯度和产物能否连起来”，不能回答“训练是否值得”。要进入有意义的实验，必须先把任务边界说清。`READ` 和 `EDIT` 看似简单，实际包含不少歧义。例如“检查并修复异常处理”包含检查和修改，按最终交付物应标记 `EDIT`；“指出需要改哪里”要求提出建议但没有授权修改，可以标记 `READ`。如果标注人员对这种边界没有一致解释，模型学到的首先是标注者之间的冲突。
+
+可将标注规则写成一小段可执行契约：只要请求明确要求改变仓库中的文件、配置或生成新文件，就归 `EDIT`；只要求解释、定位、审查和建议则归 `READ`；无法仅凭文本确定的任务归入人工复核池，暂不进入这次二分类训练。复核池不是垃圾桶：统计它包含哪些请求，决定未来是否需要增加 `CLARIFY` 类别。若真实流量中歧义请求很多，强迫二分类会导致错误自信，此时任务定义本身需要修改。
+
+### 7.1 为什么先评估基座
+
+假设基础模型已经在独立测试集上达到很高准确率，LoRA 可能没有足够提升空间。如果修改提示模板、减少输出格式歧义就能达到要求，训练所引入的数据维护、模型版本和回归成本未必合理。反过来，如果基座经常把“分析为什么失败”误判为修改，先查看它是否理解了任务规则，再判断是示例不足、输入截断还是确实需要参数学习。
+
+因此，基线不是一个百分比，而是一组可回看的输出记录。给每条测试任务分配稳定的 `id`，保留文本、来源、参考标签、基座原始输出、解析状态和推理设置。训练后仍使用同一批 ID 进行配对比较：哪些任务从错变对，哪些从对变错，错误是否集中在某个项目或某种语言。相同的总准确率可能掩盖完全不同的错误结构。
+
+## 8. 数据准备脚本：保留来源，先切分再训练
+
+实际工作中的一条记录可以具有 `id`、`project`、`text`、`label` 字段。`project` 用于按来源分组；同一项目中的重复请求和改写应尽量留在同一集合。下面的脚本是完整的标准库示例，可保存为 `prepare.py`。输入是 `raw.jsonl`；输出目录包含训练、开发、测试和一份数据清单。这里按项目名称的稳定哈希切分，目的是让相同输入得到相同结果，并非声称哈希切分对所有任务都最公平。
+
+```python
+import hashlib
+import json
+from pathlib import Path
+
+source = Path("raw.jsonl")
+out = Path("data-v1")
+out.mkdir(exist_ok=False)  # 避免静默覆盖此前实验的数据版本。
+rows = []
+seen_ids = set()
+seen_text = {}
+for line_no, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
+    if not line.strip():
+        continue
+    row = json.loads(line)
+    for key in ("id", "project", "text", "label"):
+        if not isinstance(row.get(key), str) or not row[key].strip():
+            raise ValueError(f"line {line_no}: invalid {key}")
+    if row["id"] in seen_ids:
+        raise ValueError(f"duplicate id: {row['id']}")
+    seen_ids.add(row["id"])
+    if row["label"] not in {"READ", "EDIT"}:
+        raise ValueError(f"line {line_no}: unexpected label")
+    normalized = " ".join(row["text"].split())
+    fingerprint = hashlib.sha256(normalized.encode()).hexdigest()
+    # 相同文本标签冲突是数据问题，不应随机保留其中一条。
+    if fingerprint in seen_text:
+        old = seen_text[fingerprint]
+        if old["label"] != row["label"]:
+            raise ValueError(f"conflicting labels: {old['id']}, {row['id']}")
+        continue
+    seen_text[fingerprint] = row
+    rows.append(row)
+
+splits = {"train": [], "dev": [], "test": []}
+for row in rows:
+    value = int(hashlib.sha256(row["project"].encode()).hexdigest()[:8], 16) % 100
+    name = "train" if value < 80 else "dev" if value < 90 else "test"
+    splits[name].append(row)
+
+manifest = {"source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "split_rule": "project-sha256-mod100:80/10/10", "splits": {}}
+for name, items in splits.items():
+    path = out / f"{name}.jsonl"
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in items),
+                    encoding="utf-8")
+    manifest["splits"][name] = {
+        "count": len(items),
+        "projects": len({r["project"] for r in items}),
+        "labels": {label: sum(r["label"] == label for r in items)
+                   for label in ("READ", "EDIT")},
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+(out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2),
+                                    encoding="utf-8")
+print(json.dumps(manifest, ensure_ascii=False, indent=2))
+```
+
+这个脚本仍有明确边界。空白规范化后的精确去重不能发现同义改写；同一项目换一个名字也会跨集合；项目数量少时，80/10/10 的桶并不保证实际样本比例接近目标，甚至可能有空集合。运行后先检查清单，不要为了得到漂亮比例反复改哈希规则并查看测试结果。若需要分层且分组的切分，先在不知道模型测试表现的条件下确定方案，并记录所有人工移动。
+
+开发集用于选择学习率、训练步数和模板；最终测试集只在配方确定后用于报告。如果你对测试集观察后不断修正训练数据，该集合已经逐渐变成开发集，需要新的独立测试。数据划分与交叉验证的边界可参考 [scikit-learn 模型选择说明](https://scikit-learn.org/stable/modules/cross_validation.html)。
+
+## 9. 标签检查不是看原始 JSON
+
+原始记录看起来正确，进入模型后仍可能错误。最常见的情况是 completion 被长度限制截掉，或者 collator 把所有标签都变成 `-100`。`-100` 是常见的损失忽略索引，表示该位置不贡献交叉熵；它不是一个“特殊词”。如果只打印输入 token，你无法发现训练目标已经消失。
+
+在 `trainer.train()` 前加入下面的检查。它针对前面使用的 `SFTTrainer`，通过训练器实际的数据加载器观察最终 batch，而不是自行模拟一份可能不同的标签。
+
+```python
+batch = next(iter(trainer.get_train_dataloader()))
+input_ids = batch["input_ids"]
+labels = batch["labels"]
+for row in range(min(2, input_ids.shape[0])):
+    active = labels[row] != -100
+    print("INPUT:", tokenizer.decode(input_ids[row].tolist()))
+    print("SUPERVISED:", tokenizer.decode(labels[row][active].tolist()))
+    print("target_tokens:", int(active.sum()))
+    assert active.any(), "所有标签被忽略：检查截断、模板和 loss mask"
+    # READ/EDIT 可能被 tokenizer 拆成多个 token，不应硬编码 token 数。
+```
+
+输出的 `SUPERVISED` 应与期望类别及结束标记一致。如果里面包含整条用户请求，而你的实验目标是只监督 completion，就要检查配置或数据格式。反过来，若想学习完整对话分布，却只监督最后一个短标签，训练信号也和目标不一致。观察多条样本、长样本和边界样本；只打印第一条通常不足以发现长度问题。
+
+短标签训练还有一个不易察觉的问题：模型可能只需要记住高频词，例如见到“修复”就输出 `EDIT`。这不一定是错误，但不能据此声称具有代码理解能力。测试应加入“解释修复为什么有效”“不要修改，只分析修复方案”等对照，检验它是否理解否定与最终动作要求。若下游要做函数分类或文件定位，需要加入真正的代码上下文和相应标签，不能把自然语言请求分类当作其替代证明。
+
+## 10. LoRA 参数如何影响实验
+
+LoRA 的 `r` 决定低秩更新的维度。增加它通常增加可训练参数、优化器状态与适配器文件大小，但不保证效果单调提升。`lora_alpha` 与 `r` 一起影响更新缩放；在更改 rank 后不加说明地复用其他参数，会让比较不再只改变一个因素。`lora_dropout` 在训练时对适配器路径施加随机丢弃，可能影响过拟合和稳定性；极小数据上的结果尤其容易波动。
+
+`target_modules` 决定哪些线性层带适配器。前例只选择 `q_proj` 和 `v_proj`，便于理解而非宣称最优。不同模型可能采用融合 QKV、不同投影名称或 MoE 专家模块，必须先打印 `model.named_modules()`。名称匹配成功也不代表你覆盖了想训练的所有位置。PEFT 可以报告可训练参数量，另应保存适配器配置，确保评估加载的是同一目标结构。[PEFT LoRA 开发者指南](https://huggingface.co/docs/peft/developer_guides/lora)
+
+学习率 `2e-4` 只是适配器训练的一种试验起点，不是所有模型与数据的默认答案。较大的学习率可能很快降低训练损失，却使独立任务退化；较小的学习率也可能在预算内无法学会标签。先建立一个短跑，确认非零梯度、有限损失、权重变化和输出变化，再在预先规定的小范围里使用开发集选择设置。每次只改一个核心因素更容易诊断，最终效果仍可能需要多种参数联调。
+
+有效批量由 micro-batch、数据并行副本和梯度累积共同决定。单卡例子的每批一条、累积四次，在样本等权的前提下相当于每次更新四条；变长样本的有效 token 数不同，需核对训练器的归一化方式。将累积从四改到十六不只是“降低显存”，它也改变每次更新看到的数据和更新频率，因此应重新记录学习率调度与训练 token。
+
+## 11. 一份不会把错误吞掉的评估脚本
+
+下面的 `evaluate.py` 在基础模型和适配器之间切换，保留全部预测。这里使用与训练一致的纯文本 prompt；没有悄悄加聊天模板。模型 ID、revision 和适配器目录通过命令行输入，方便保存实际运行命令。推理采用 FP32 与单卡映射以减少示例分支，实际资源不足时要明确改变精度并重新测量。
+
+```python
+import argparse
+import json
+from pathlib import Path
+import torch
+from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+p = argparse.ArgumentParser()
+p.add_argument("--model", required=True)
+p.add_argument("--revision", required=True)
+p.add_argument("--adapter")
+p.add_argument("--test", default="data-v1/test.jsonl")
+p.add_argument("--output", required=True)
+a = p.parse_args()
+
+tok = AutoTokenizer.from_pretrained(a.model, revision=a.revision)
+model = AutoModelForCausalLM.from_pretrained(
+    a.model, revision=a.revision, torch_dtype=torch.float32)
+if a.adapter:
+    model = PeftModel.from_pretrained(model, a.adapter)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device).eval()
+results = []
+with torch.inference_mode():
+    for line in Path(a.test).read_text(encoding="utf-8").splitlines():
+        item = json.loads(line)
+        prompt = f"判断类型：{item['text']}\n类别："
+        batch = tok(prompt, return_tensors="pt").to(device)
+        # 先检查长度。静默截断可能恰好丢掉决定标签的末尾要求。
+        if batch.input_ids.shape[1] > 240:
+            raise ValueError(f"输入过长，需要明确截断策略: {item['id']}")
+        generated = model.generate(
+            **batch, do_sample=False, max_new_tokens=8,
+            pad_token_id=tok.eos_token_id)
+        suffix = generated[0, batch.input_ids.shape[1]:]
+        raw = tok.decode(suffix, skip_special_tokens=True).strip()
+        # 严格解析。输出“EDIT，因为……”算格式失败，不取第一个词蒙混过关。
+        prediction = raw if raw in {"READ", "EDIT"} else None
+        results.append({"id": item["id"], "reference": item["label"],
+                        "raw": raw, "prediction": prediction,
+                        "correct": prediction == item["label"]})
+Path(a.output).write_text(
+    "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in results), encoding="utf-8")
+print({"n": len(results), "correct": sum(r["correct"] for r in results),
+       "invalid": sum(r["prediction"] is None for r in results)})
+```
+
+脚本只做确定性生成下的分类评测。它没有实现批量吞吐测量，也没有在推理开始前预热 GPU，因此不能直接用其运行时间声称服务延迟。若真实应用允许解释文本，应该提前定义不同解析规则；不能看到哪个规则更有利于训练模型后才选择。相同规则必须用于基座与适配器。生成和输出处理的接口见 [Transformers 生成指南](https://huggingface.co/docs/transformers/main_classes/text_generation)。
+
+## 12. 恢复实验：故意中断一次
+
+长训练最昂贵的错误之一，是直到机器故障后才发现 checkpoint 只能用于推理。先在短跑中设置保存间隔，保存后终止进程，再从明确路径恢复：
+
+```python
+# 将前面的 trainer.train() 替换为此调用；路径要对应完整 checkpoint。
+trainer.train(resume_from_checkpoint="runs/lora-example/checkpoint-10")
+```
+
+恢复时检查日志中的 step、学习率和读取位置，确认优化器与调度器状态存在；不要仅因为输出目录包含 `adapter_model.safetensors` 就断定足以续训。若数据顺序、worker 数、分布式规模或依赖改变，精确复现可能受到影响，需记录这些变化。训练恢复与仅加载适配器做新一轮微调是两种不同操作，书中的实验记录必须区分。[Trainer 检查点恢复](https://huggingface.co/docs/transformers/main_classes/trainer)
+
+如果恢复后的第一步损失与中断前不同，不应立即认定失败：读取的 batch 可能不同，dropout 也有随机性。更有力的测试是在固定小数据与环境中比较连续运行和中断恢复的步数、学习率、样本顺序及多步轨迹；若差异异常大，再定位状态缺失。把恢复检查设计成预算内的实验，比把它当部署后的补救措施可靠。
+
+## 13. 何时可以宣布这次训练有价值
+
+实验结束时，应能用一句有边界的话描述结果，例如：“在固定版本的模型与提示下，按项目隔离的某份测试集上，适配器相比基座减少了哪些错误，增加了哪些错误，训练花费多少资源，仍在哪些条件下失败。”如果没有真实数据，就只报告管线检查结果；如果只跑了一次，就不声称结论具有稳定性；如果基线不同，就不要将所有差异归因于 LoRA。
+
+一个有用的交付包至少包含数据清单和哈希、标注规则、固定环境、模型及 tokenizer revision、训练与评估命令、适配器、完整检查点或其保存策略、逐样本预测、错误分析和资源记录。它不一定很大，但应允许同事知道“训练了什么、为什么认为它更好、哪些结论还没有证据”。本章提供的是完整实验设计和代码说明，仍需在目标 GPU 与固定依赖环境实测后，才可填入任何性能或质量结果。
