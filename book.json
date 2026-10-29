@@ -1,1 +1,36 @@
-{"title":"大模型训练：从目标到系统","language":"zh-CN","chapters":[{"id":"01-overview","title":"训练全景","path":"chapters/01-overview.md","slug":"01-overview"},{"id":"02-data","title":"数据工程","path":"chapters/02-data.md","slug":"02-data"},{"id":"03-methods","title":"训练方法","path":"chapters/03-methods.md","slug":"03-methods"},{"id":"04-stack","title":"训练工程栈","path":"chapters/04-stack.md","slug":"04-stack"}]}
+{
+  "title": "大模型训练：从目标到系统",
+  "language": "zh-CN",
+  "chapters": [
+    {
+      "id": "01-overview",
+      "title": "训练全景",
+      "path": "chapters/01-overview.md",
+      "slug": "01-overview"
+    },
+    {
+      "id": "02-data",
+      "title": "数据工程",
+      "path": "chapters/02-data.md",
+      "slug": "02-data"
+    },
+    {
+      "id": "03-methods",
+      "title": "训练方法",
+      "path": "chapters/03-methods.md",
+      "slug": "03-methods"
+    },
+    {
+      "id": "04-stack",
+      "title": "训练工程栈",
+      "path": "chapters/04-stack.md",
+      "slug": "04-stack"
+    },
+    {
+      "id": "05-distillation",
+      "title": "蒸馏",
+      "path": "chapters/05-distillation.md",
+      "slug": "05-distillation"
+    }
+  ]
+}
