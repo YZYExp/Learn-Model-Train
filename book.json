@@ -31,6 +31,12 @@
       "title": "蒸馏",
       "path": "chapters/05-distillation.md",
       "slug": "05-distillation"
+    },
+    {
+      "id": "06-toolchains",
+      "title": "工业训练工具链",
+      "path": "chapters/06-toolchains.md",
+      "slug": "06-toolchains"
     }
   ]
 }
