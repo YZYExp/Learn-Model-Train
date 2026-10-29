@@ -239,6 +239,8 @@ args = TrainingArguments(
     lr_scheduler_type="linear",
     bf16=True,
     gradient_checkpointing=True,
+    # 单卡教学路径显式选择非重入实现，避免依赖隐含默认值。
+    gradient_checkpointing_kwargs={"use_reentrant": False},
     logging_steps=5,
     eval_strategy="steps", eval_steps=25,
     save_strategy="steps", save_steps=25,
@@ -253,6 +255,8 @@ trainer.train(resume_from_checkpoint=resume or None)
 trainer.save_model(str(out_dir / "adapter-final"))
 tokenizer.save_pretrained(str(out_dir / "adapter-final"))
 ```
+
+这里显式选择非重入激活重计算，是因为它与重入实现对输入梯度和计算图的要求不同；冻结基座的 PEFT 训练尤其要确认梯度确实到达适配器。这不是所有分布式后端都通用的配置，应按目标组合重新验证。[PyTorch checkpoint 两种实现](https://docs.pytorch.org/docs/stable/checkpoint.html)。
 
 这是一套待验证的接口示例，不是承诺 `100` 步就足够。第一轮可以用极少样本验证权重变化和保存恢复，正式预算应由学习曲线、独立评估和资源限制确定。`learning_rate=1e-4` 只是示例值；不同基础模型、目标模块和数据量可能需要不同值。
 
@@ -337,7 +341,7 @@ tokenizer.save_pretrained("merged-export")
 
 **LoRA 保存很小，但加载后像没训练。** 检查适配器是否真正加载、基础 revision 是否相同、目标模块是否匹配、训练时可训练参数是否包含未保存模块。用同一输入比较适配器开关前后的 logits；仅打印「loaded」不足以判断。
 
-**前向能跑，第一次 optimizer step OOM。** 优化器状态可能延迟到第一次更新才创建；显存账本要包括可训练参数对应的状态。训练的 optimizer 不应意外包含所有冻结权重。若反向 OOM，重点看长度与激活；若保存 OOM，检查是否临时聚合完整状态。
+**前向能跑，第一次 optimizer step OOM。** 优化器状态可能延迟到第一次更新才创建；显存账本要包括可训练参数对应的状态。应核查优化器的参数组及实际创建的状态；仅把冻结参数留在参数组中，不代表所有优化器实现都会为无梯度参数分配状态。若反向 OOM，重点看长度与激活；若保存 OOM，检查是否临时聚合完整状态。
 
 **恢复后 loss 跳变。** 区分从适配器重新开始和从完整 checkpoint 续训。后者需要恢复优化器、调度器和数据位置。把 `adapter-final` 目录当作完整 checkpoint，通常不满足续训契约。
 

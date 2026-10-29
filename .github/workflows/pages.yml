@@ -24,6 +24,7 @@ jobs:
         run: |
           python3 scripts/check_book.py
           node scripts/build_site.cjs --base-path "/${GITHUB_REPOSITORY#*/}/"
+          python3 scripts/check_citations.py
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3

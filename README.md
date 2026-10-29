@@ -11,3 +11,5 @@
 ## 教学主线
 
 当前目录已改为项目设计、计算与训练方法、工具链完整实现、系统与专题、速查五部分。先读 [顶层工程设计](chapters/16-engineering-design.md) 与 [底层计算](chapters/17-computation-depth.md)，再进入 [HF 工作流](chapters/18-hf-workflow.md)、[NeMo/Megatron](chapters/19-nemo-megatron-workflow.md) 和 [verl](chapters/20-verl-workflow.md)。详细阅读说明见 [阅读路线](appendices/reading-routes.md)。章节中的业务数字为标明条件的算例，GPU 配方仍需在目标环境验证。
+
+阅读站采用 Markdown-it、markdown-it-footnote 和 Highlight.js；代码高亮在构建时生成并随站发布。构建后运行 `python scripts/check_citations.py` 检查脚注、参考资料和回跳锚点。当前“每页”指每个章节网页；本项目尚未交付逐物理页脚注的 PDF。
