@@ -43,6 +43,36 @@
       "title": "NeMo 生命周期工具链",
       "path": "chapters/07-nemo-ecosystem.md",
       "slug": "07-nemo-ecosystem"
+    },
+    {
+      "id": "08-methods-deep",
+      "title": "训练方法详解",
+      "path": "chapters/08-methods-deep.md",
+      "slug": "08-methods-deep"
+    },
+    {
+      "id": "09-systems",
+      "title": "训练系统与分布式",
+      "path": "chapters/09-systems.md",
+      "slug": "09-systems"
+    },
+    {
+      "id": "10-practice-evaluation",
+      "title": "数据实践与评估",
+      "path": "chapters/10-practice-evaluation.md",
+      "slug": "10-practice-evaluation"
+    },
+    {
+      "id": "11-special-topics",
+      "title": "长上下文、MoE 与多模态",
+      "path": "chapters/11-special-topics.md",
+      "slug": "11-special-topics"
+    },
+    {
+      "id": "12-first-training",
+      "title": "从一轮训练理解模型",
+      "path": "chapters/12-first-training.md",
+      "slug": "12-first-training"
     }
   ]
 }

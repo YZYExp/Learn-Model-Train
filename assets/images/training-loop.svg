@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
+<title id="title">一次训练更新</title><desc id="desc">输入样本进入模型，计算损失并反向传播，优化器更新参数后重复。</desc>
+<rect width="1200" height="450" rx="20" fill="#f6f8fb"/><g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" text-anchor="middle">
+<text x="600" y="54" font-size="32" fill="#172b4d" font-weight="bold">一次训练更新：从样本到参数</text>
+<g fill="#fff" stroke="#a8bfd5" stroke-width="2"><rect x="45" y="105" width="190" height="92" rx="14"/><rect x="275" y="105" width="190" height="92" rx="14"/><rect x="505" y="105" width="190" height="92" rx="14"/><rect x="735" y="105" width="190" height="92" rx="14"/><rect x="965" y="105" width="190" height="92" rx="14"/></g>
+<g font-size="25" fill="#173451"><text x="140" y="145">训练样本</text><text x="370" y="145">前向计算</text><text x="600" y="145">计算损失</text><text x="830" y="145">反向传播</text><text x="1060" y="145">优化器更新</text></g>
+<g font-size="16" fill="#5a6f83"><text x="140" y="174">输入与目标</text><text x="370" y="174">模型生成预测</text><text x="600" y="174">衡量预测误差</text><text x="830" y="174">求参数梯度</text><text x="1060" y="174">调整模型参数</text></g>
+<g stroke="#47789e" stroke-width="3" fill="none"><path d="M235 151h35 M465 151h35 M695 151h35 M925 151h35"/><path d="M1060 197v85H370v-85" stroke-dasharray="8 7"/></g><g fill="#47789e"><path d="M270 151l-10-6v12z M500 151l-10-6v12z M730 151l-10-6v12z M960 151l-10-6v12z M370 197l-6 10h12z"/></g>
+<text x="715" y="321" font-size="20" fill="#41586c">重复多个批次；定期保存并使用独立数据评估</text><text x="600" y="388" font-size="16" fill="#6a7e8e">图 1：原创教学示意；梯度累积时，多个批次可共用一次参数更新。</text></g></svg>
