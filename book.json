@@ -24,6 +24,13 @@
       "part": "一、项目设计"
     },
     {
+      "id": "22-data-pipeline",
+      "title": "数据管线：从原始记录到训练批次",
+      "path": "chapters/22-data-pipeline.md",
+      "slug": "22-data-pipeline",
+      "part": "一、项目设计"
+    },
+    {
       "id": "12-first-training",
       "title": "从一轮训练理解模型",
       "path": "chapters/12-first-training.md",
@@ -59,6 +66,13 @@
       "part": "二、计算与训练方法"
     },
     {
+      "id": "24-training-principles",
+      "title": "优化与分布式训练原理",
+      "path": "chapters/24-training-principles.md",
+      "slug": "24-training-principles",
+      "part": "二、计算与训练方法"
+    },
+    {
       "id": "18-hf-workflow",
       "title": "Hugging Face：完整后训练工作流",
       "path": "chapters/18-hf-workflow.md",
@@ -84,6 +98,20 @@
       "title": "verl：在线强化学习工作流",
       "path": "chapters/20-verl-workflow.md",
       "slug": "20-verl-workflow",
+      "part": "三、工具链的完整实现"
+    },
+    {
+      "id": "21-scale-recipes",
+      "title": "单卡、多卡与集群：同一任务的训练配方",
+      "path": "chapters/21-scale-recipes.md",
+      "slug": "21-scale-recipes",
+      "part": "三、工具链的完整实现"
+    },
+    {
+      "id": "23-framework-recipes",
+      "title": "LlamaFactory、Axolotl 与分布式框架",
+      "path": "chapters/23-framework-recipes.md",
+      "slug": "23-framework-recipes",
       "part": "三、工具链的完整实现"
     },
     {

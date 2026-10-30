@@ -334,3 +334,11 @@ FSDP、ZeRO 和张量并行又增加了参数及梯度分片。它们改变状�
 [^adamw]: Loshchilov 与 Hutter，*Decoupled Weight Decay Regularization*：[论文](https://arxiv.org/abs/1711.05101)；[PyTorch AdamW 算法](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html)。
 [^amp]: PyTorch，[混合精度与梯度累积示例](https://docs.pytorch.org/docs/stable/notes/amp_examples.html)。
 [^ddp]: PyTorch，[DistributedDataParallel](https://docs.pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html)。本章 R 倍缩放推导假设标准梯度平均，不涵盖改变归约约定的自定义实现。
+
+## 可运行练习：为什么不能平均每张卡的 loss
+
+假设 rank 0 有 3 个有效目标 token，loss 分别是 1、2、3；rank 1 只有一个，loss 是 10。逐卡均值分别是 2 和 10，两卡等权平均得到 6。但真正对四个 token 等权平均，应为 `(1+2+3+10)/4 = 4`。这不是显示上的偏差：如果用同一种错误归一化做反向传播，优化器接收到的梯度权重也会改变。
+
+运行 [`token_mean_demo.py`](../scripts/token_mean_demo.py) 可以复核这两个结果。程序用标准库精确分数模拟计算，不会启动分布式训练。在常规 DDP 对各 rank 梯度取平均、世界大小 `W=2` 的条件下，如果本轮全局有效目标数 `N=4` 已知，每个 rank 使用 `W × 本地有效 token 损失和 / N` 反向传播，随后 DDP 的梯度平均会得到全局 token 平均的梯度。该式还要求每个 rank 的计算语义一致，且没有由训练框架额外缩放；梯度累积、混合精度、空 batch 和其他并行策略需要结合实际实现处理。[PyTorch DDP 文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html)；[Accelerate 对变长 token 梯度累积的说明](https://huggingface.co/docs/accelerate/main/usage_guides/gradient_accumulation)。
+
+实际项目的检查方法是：从同一小批可变长样本出发，固定随机数和模型参数，分别计算单进程全局 token 平均的梯度，以及模拟或真实多进程的梯度；逐参数比较误差，再打开梯度累积、混合精度和分片。不同浮点归约顺序可能产生小差异，但如果差异随 rank 有效 token 数改变而显著变化，应先查损失权重，而不是立即调大学习率。
