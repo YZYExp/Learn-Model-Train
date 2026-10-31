@@ -143,6 +143,27 @@
       "part": "四、系统、专题与交付"
     },
     {
+      "id": "25-serving-production",
+      "title": "推理服务：容量、调度与上线",
+      "path": "chapters/25-serving-production.md",
+      "slug": "25-serving-production",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "26-serving-engines",
+      "title": "推理引擎：从单卡到集群",
+      "path": "chapters/26-serving-engines.md",
+      "slug": "26-serving-engines",
+      "part": "四、系统、专题与交付"
+    },
+    {
+      "id": "27-serving-benchmark",
+      "title": "推理压测：延迟、吞吐与质量",
+      "path": "chapters/27-serving-benchmark.md",
+      "slug": "27-serving-benchmark",
+      "part": "四、系统、专题与交付"
+    },
+    {
       "id": "03-methods",
       "title": "训练方法",
       "path": "chapters/03-methods.md",
